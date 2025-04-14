@@ -21,11 +21,13 @@ cloudinary.config({
 
 // ✅ File upload route
 app.post('/upload-id', upload.single('file'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
+  console.log('Received file:', req.file);  // Add this line to see if multer catches the file
 
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+  try {
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: 'user_ids',
       type: 'authenticated',
@@ -34,7 +36,7 @@ app.post('/upload-id', upload.single('file'), async (req, res) => {
 
     res.json({ secure_url: result.secure_url, public_id: result.public_id });
   } catch (err) {
-    console.error('❌ Upload failed:', err);
+    console.error('Upload error:', err);
     res.status(500).json({ error: 'Upload failed' });
   }
 });
