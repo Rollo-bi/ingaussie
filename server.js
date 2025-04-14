@@ -3,21 +3,29 @@ const express = require('express');
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 const cors = require('cors');
+
 const app = express();
 const upload = multer({ dest: 'uploads/' });
 
-app.use(cors()); // Enable CORS
+// ✅ Enable CORS
+app.use(cors({
+  origin: '*' // Change this to your frontend URL in production for more security
+}));
 
-// Set up Cloudinary
+// ✅ Configure Cloudinary
 cloudinary.config({
-  cloud_name: 'ds8lqylhn', // Replace with your Cloudinary cloud name
-  api_key: '793837262212788', // Replace with your API key
-  api_secret: '_HvgZAI9BY_r6a_G-vfJ0lzlxDk' // Replace with your API secret
+  cloud_name: 'ds8lqylhn',
+  api_key: '793837262212788',
+  api_secret: '_HvgZAI9BY_r6a_G-vfJ0lzlxDk'
 });
 
-// File upload route
+// ✅ File upload route
 app.post('/upload-id', upload.single('file'), async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: 'user_ids',
       type: 'authenticated',
@@ -26,12 +34,13 @@ app.post('/upload-id', upload.single('file'), async (req, res) => {
 
     res.json({ secure_url: result.secure_url, public_id: result.public_id });
   } catch (err) {
-    console.error(err);
+    console.error('❌ Upload failed:', err);
     res.status(500).json({ error: 'Upload failed' });
   }
 });
 
-// Start server
-app.listen(3000, () => {
-  console.log('Server running on http://localhost:3000');
+// ✅ Dynamic port for Render, fallback for local dev
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
 });
